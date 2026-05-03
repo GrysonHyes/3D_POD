@@ -36,8 +36,8 @@ def pod(S, method = 'snapshot'):
         lamb, phi = np.linalg.eigh(C)
         lamb = lamb[::-1] # Sorts eigenvalues in descending order
         phi = phi[:,::-1]
-        phi = S_fluc @ phi
-        phi /= np.linalg.norm(phi, axis=0, keepdims=True)
+        phi = S_fluc @ phi # Comment if you want temporal modes
+        phi /= np.linalg.norm(phi, axis=0, keepdims=True) # Comment if you want temporal modes
 
     elif method == 'full':
         m = S.shape[0]
