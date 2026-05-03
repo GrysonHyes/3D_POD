@@ -53,10 +53,6 @@ def pod(S, method = 'snapshot'):
     
     return lamb, phi, a
 
-def spatial(grid, k, phi):
-    n_y = grid['y'].size
-    n_x = grid['x'].size
-
+def spatial(n_x, n_y, k, phi):
     k_image = phi[:,k].reshape(n_y, n_x)
-
-    return n_y, n_x, k_image
+    return k_image

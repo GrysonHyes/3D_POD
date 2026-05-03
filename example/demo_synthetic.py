@@ -7,32 +7,6 @@ Corresponding Email: hayes.grayson@outlook.com
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = 'sample.npz'
-
-d = np.load('sample.npz')
-print(f"psi shape: {d['psi'].shape}")        # should be (n_t, n_y, n_x)
-print(f"x length: {d['x'].size}")
-print(f"y length: {d['y'].size}")
-
-psi, x, y, t = d['psi'], d['x'], d['y'], d['t']
-
-# Pick a time index
-k = 25  # first snapshot; try 25, 50, 75 to see the orbit progress
-
-fig, ax = plt.subplots(figsize=(6, 5))
-im = ax.imshow(
-    psi[k],
-    extent=[x[0], x[-1], y[0], y[-1]],
-    origin='lower',
-    cmap='viridis',          # sequential colormap — psi is non-negative
-)
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_aspect('equal')
-ax.set_title(f'Streamfunction at t = {t[k]:.3f}')
-plt.colorbar(im, ax=ax, label=r'$\psi$')
-plt.show()
-
 def load_npz(data, field_key = 'psi', t_key = 't', x_key = 'x', y_key = 'y'):
     '''Load 2 spatial dimension field stored as (n_t, n_y, n_x)'''
     d = np.load(data)
@@ -82,73 +56,98 @@ def pod(S, method = 'snapshot'):
     
     return lamb, phi, a
 
-def spatial(grid, k):
-    n_y = grid['y'].size
-    n_x = grid['x'].size
-
+def spatial(n_y, n_x, k, phi):
     k_image = phi[:,k].reshape(n_y, n_x)
 
     return n_y, n_x, k_image
 
-S, t, grid = load_npz(data)
-lamb, phi, a = pod(S, method='full')
+'''
+DEMO
+'''
 
-TKE_k = lamb / np.sum(lamb)
+if __name__ == '__main__':
 
-modes = np.arange(1, len(lamb) + 1)
+    data = 'sample.npz'
 
-fig, ax1 = plt.subplots()
-ax1.semilogy(modes, TKE_k, label = 'Percentage of Energy', color = 'r')
-ax1.set_xlabel('Mode #')
-ax1.set_ylabel('TKE%')
-ax1.tick_params(axis='y', color='r')
+    d = np.load(data)
+    psi, x, y, t = d['psi'], d['x'], d['y'], d['t']
 
-ax2 = ax1.twinx()
-TKE_cum = np.cumsum(TKE_k)
-ax2.plot(modes, TKE_cum, label = 'Cumulative Energy', color = 'b')
-ax2.set_ylabel('Cumulative Energy Fraction')
-ax2.tick_params(axis='y', color='b')
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax1.legend(lines1 + lines2, labels1 + labels2, loc='lower right')
-ax1.set_xlim((0,10)) # Feel free to mess with this
-plt.title('Energy Content of POD Modes')
-plt.show()
-
-for k in range(1,4):
-    ny, nx, img = spatial(grid, k)
+    # Pick a time index
+    k = 12  # first snapshot; try 25, 50, 75 to see the orbit progress
 
     fig, ax = plt.subplots(figsize=(6, 5))
     im = ax.imshow(
-        img,
-        extent=[grid['x'][0], grid['x'][-1], grid['y'][0], grid['y'][-1]],
-        origin='lower',          # critical — see below
-        cmap='RdBu_r',           # diverging colormap centered at 0
+        psi[k],
+        extent=[x[0], x[-1], y[0], y[-1]],
+        origin='lower',
+        cmap='viridis',          # sequential colormap — psi is non-negative
     )
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    ax.set_title(f'POD Mode {k}')
-    plt.colorbar(im, ax=ax, label='mode amplitude')
+    ax.set_aspect('equal')
+    ax.set_title(f'Streamfunction at t = {t[k]:.3f}')
+    plt.colorbar(im, ax=ax, label=r'$\psi$')
     plt.show()
 
-fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+    S, t, grid = load_npz(data)
+    lamb, phi, a = pod(S, method='full')
 
-for k, ax in enumerate(axes):
-    ny, nx, mode_image = spatial(grid, k)
-    # Symmetric color limits centered at 0
-    vmax = np.abs(mode_image).max()
-    im = ax.imshow(
-        mode_image,
-        extent=[grid['x'][0], grid['x'][-1], grid['y'][0], grid['y'][-1]],
-        origin='lower',
-        cmap='RdBu_r',
-        vmin=-vmax, vmax=vmax,
-    )
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_title(f'Mode {k+1}, λ={lamb[k]:.3g}')
-    ax.set_aspect('equal')
-    plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    TKE_k = lamb / np.sum(lamb)
 
-plt.tight_layout()
-plt.show()
+    modes = np.arange(1, len(lamb) + 1)
+
+    fig, ax1 = plt.subplots()
+    ax1.semilogy(modes, TKE_k, label = 'Percentage of Energy', color = 'r')
+    ax1.set_xlabel('Mode #')
+    ax1.set_ylabel('TKE%')
+    ax1.tick_params(axis='y', color='r')
+
+    ax2 = ax1.twinx()
+    TKE_cum = np.cumsum(TKE_k)
+    ax2.plot(modes, TKE_cum, label = 'Cumulative Energy', color = 'b')
+    ax2.set_ylabel('Cumulative Energy Fraction')
+    ax2.tick_params(axis='y', color='b')
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='lower right')
+    ax1.set_xlim((0,10)) # Feel free to mess with this
+    plt.title('Energy Content of POD Modes')
+    plt.show()
+
+    for k in range(1,4):
+        ny, nx, img = spatial(grid, k)
+
+        fig, ax = plt.subplots(figsize=(6, 5))
+        im = ax.imshow(
+            img,
+            extent=[grid['x'][0], grid['x'][-1], grid['y'][0], grid['y'][-1]],
+            origin='lower',
+            cmap='RdBu_r',           # diverging colormap centered at 0
+        )
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_title(f'POD Mode {k}')
+        plt.colorbar(im, ax=ax, label='mode amplitude')
+        plt.show()
+
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+
+    for k, ax in enumerate(axes):
+        ny, nx, mode_image = spatial(grid, k)
+        # Symmetric color limits centered at 0
+        vmax = np.abs(mode_image).max()
+        im = ax.imshow(
+            mode_image,
+            extent=[grid['x'][0], grid['x'][-1], grid['y'][0], grid['y'][-1]],
+            origin='lower',
+            cmap='RdBu_r',
+            vmin=-vmax, vmax=vmax,
+        )
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_title(f'Mode {k+1}, λ={lamb[k]:.3g}')
+        ax.set_aspect('equal')
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+    plt.tight_layout()
+    plt.show()
