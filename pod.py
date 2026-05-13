@@ -27,7 +27,7 @@ def load_csv(data, time_column = 0, headers = False):
     S = d[:, space].T
     return S, t, None
 
-def pod(S, method = 'snapshot'):
+def pod(S: np.array, method: str = 'snapshot') -> tuple[np.array, np.array, np.array]:
     S_fluc = S - S.mean(axis = 1, keepdims = True)
 
     if method == 'snapshot':
@@ -53,6 +53,6 @@ def pod(S, method = 'snapshot'):
     
     return lamb, phi, a
 
-def spatial(n_x, n_y, k, phi):
-    k_image = phi[:,k].reshape(n_y, n_x)
+def spatial(n_x: int, n_y: int, k: int, phi: np.array) -> np.array:
+    k_image: np.array = phi[:,k].reshape(n_y, n_x)
     return k_image
