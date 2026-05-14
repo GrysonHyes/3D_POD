@@ -30,7 +30,7 @@ def load_csv(data, time_column = 0, headers = False):
     S = d[:, space].T
     return S, t, None
 
-def pod(S, method = 'snapshot'):
+def pod(S: np.array, method: str = 'snapshot') -> tuple[np.array, np.array, np.array]:
     S_fluc = S - S.mean(axis = 1, keepdims = True)
 
     if method == 'snapshot':
@@ -39,8 +39,8 @@ def pod(S, method = 'snapshot'):
         lamb, phi = np.linalg.eigh(C)
         lamb = lamb[::-1] # Sorts eigenvalues in descending order
         phi = phi[:,::-1]
-        phi = S_fluc @ phi
-        phi /= np.linalg.norm(phi, axis=0, keepdims=True)
+        phi = S_fluc @ phi # Comment if you want temporal modes
+        phi /= np.linalg.norm(phi, axis=0, keepdims=True) # Comment if you want temporal modes
 
     elif method == 'full':
         m = S.shape[0]
@@ -59,7 +59,7 @@ def pod(S, method = 'snapshot'):
 def spatial(n_y, n_x, k, phi):
     k_image = phi[:,k].reshape(n_y, n_x)
 
-    return n_y, n_x, k_image
+    return k_image
 
 '''
 DEMO
@@ -67,20 +67,22 @@ DEMO
 
 if __name__ == '__main__':
 
-    data = 'sample.npz'
+    data = 'example/Synthetic Data/sample.npz'
 
     d = np.load(data)
     psi, x, y, t = d['psi'], d['x'], d['y'], d['t']
+    nx = len(x)
+    ny = len(y)
 
     # Pick a time index
-    k = 12  # first snapshot; try 25, 50, 75 to see the orbit progress
+    k = 1  # first snapshot; try 25, 50, 75 to see the orbit progress
 
     fig, ax = plt.subplots(figsize=(6, 5))
     im = ax.imshow(
         psi[k],
         extent=[x[0], x[-1], y[0], y[-1]],
         origin='lower',
-        cmap='viridis',          # sequential colormap — psi is non-negative
+        cmap='viridis',          
     )
     ax.set_xlabel('x')
     ax.set_ylabel('y')
@@ -115,14 +117,14 @@ if __name__ == '__main__':
     plt.show()
 
     for k in range(1,4):
-        ny, nx, img = spatial(grid, k)
+        img = spatial(ny, nx, k, phi)
 
         fig, ax = plt.subplots(figsize=(6, 5))
         im = ax.imshow(
             img,
             extent=[grid['x'][0], grid['x'][-1], grid['y'][0], grid['y'][-1]],
             origin='lower',
-            cmap='RdBu_r',           # diverging colormap centered at 0
+            cmap='RdBu_r', 
         )
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     fig, axes = plt.subplots(1, 3, figsize=(14, 4))
 
     for k, ax in enumerate(axes):
-        ny, nx, mode_image = spatial(grid, k)
+        mode_image = spatial(ny, nx, k, phi)
         # Symmetric color limits centered at 0
         vmax = np.abs(mode_image).max()
         im = ax.imshow(

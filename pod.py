@@ -28,6 +28,16 @@ def load_csv(data, time_column = 0, headers = False):
     return S, t, None
 
 def pod(S: np.array, method: str = 'snapshot') -> tuple[np.array, np.array, np.array]:
+    '''
+    Docstring for pod
+    
+    :param S: Dataset reshaped to m x n shape, where n = number of time series
+    :type S: np.array
+    :param method: Can either snapshot or full, snapshot is more efficient
+    :type method: str
+    :return: Returns the eigenvalues, eigenvectors, and time coefficients of the dataset
+    :rtype: tuple
+    '''
     S_fluc = S - S.mean(axis = 1, keepdims = True)
 
     if method == 'snapshot':
@@ -54,5 +64,19 @@ def pod(S: np.array, method: str = 'snapshot') -> tuple[np.array, np.array, np.a
     return lamb, phi, a
 
 def spatial(n_x: int, n_y: int, k: int, phi: np.array) -> np.array:
+    '''
+    Docstring for spatial
+    
+    :param n_x: x-resolution of original data
+    :type n_x: int
+    :param n_y: y-resolution of original data
+    :type n_y: int
+    :param k: mode number you wish to reconstruct
+    :type k: int
+    :param phi: eigenvectors
+    :type phi: np.array
+    :return: returns the spatial reconstruction of the given mode
+    :rtype: Any
+    '''
     k_image: np.array = phi[:,k].reshape(n_y, n_x)
     return k_image
